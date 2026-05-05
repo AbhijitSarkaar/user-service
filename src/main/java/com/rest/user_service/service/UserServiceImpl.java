@@ -54,6 +54,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public APIResponse deleteUser(Long userid) {
+        findById(userid);
         userRepository.deleteById(userid);
         return new APIResponse("User with id " + userid + " deleted");
     }
