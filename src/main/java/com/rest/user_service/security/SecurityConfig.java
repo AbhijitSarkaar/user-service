@@ -1,6 +1,7 @@
 
 package com.rest.user_service.security;
 
+import com.rest.user_service.security.jwt.AuthEntryPoint;
 import com.rest.user_service.security.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
@@ -22,6 +23,9 @@ public class SecurityConfig {
 
     @Autowired
     UserDetailsServiceImpl userDetailsService;
+
+    @Autowired
+    AuthEntryPoint unauthorizedHandler;
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
@@ -53,8 +57,11 @@ public class SecurityConfig {
 
         http.authenticationProvider(authenticationProvider());
 
-//        http.exceptionHandling(exception -> exception.authenticationEntryPoint());
-//        http.addFilterBefore();
+        http.exceptionHandling(
+                exception -> exception.authenticationEntryPoint(unauthorizedHandler)
+        );
+
+        //        http.addFilterBefore();
 
         return http.build();
 
