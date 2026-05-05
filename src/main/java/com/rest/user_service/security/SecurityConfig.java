@@ -2,6 +2,7 @@
 package com.rest.user_service.security;
 
 import com.rest.user_service.security.jwt.AuthEntryPoint;
+import com.rest.user_service.security.jwt.AuthTokenFilter;
 import com.rest.user_service.security.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
@@ -16,6 +17,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -26,6 +28,11 @@ public class SecurityConfig {
 
     @Autowired
     AuthEntryPoint unauthorizedHandler;
+
+    @Bean
+    AuthTokenFilter authTokenFilter() {
+        return new AuthTokenFilter();
+    }
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
@@ -47,7 +54,6 @@ public class SecurityConfig {
     @Bean
     @Order(SecurityFilterProperties.BASIC_AUTH_ORDER)
     SecurityFilterChain securityFilterChain(HttpSecurity http) {
-
         http
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/api/*").permitAll()
@@ -56,15 +62,11 @@ public class SecurityConfig {
                 );
 
         http.authenticationProvider(authenticationProvider());
-
         http.exceptionHandling(
                 exception -> exception.authenticationEntryPoint(unauthorizedHandler)
         );
-
-        //        http.addFilterBefore();
+        http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-
     }
-
 }

@@ -19,7 +19,7 @@ import java.util.Date;
 
 
 @Component
-public class jwtUtils {
+public class JwtUtils {
 
     @Value("${spring.app.jwtSecret}")
     private String jwtSecret;
