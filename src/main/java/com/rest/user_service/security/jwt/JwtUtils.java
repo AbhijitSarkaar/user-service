@@ -30,10 +30,10 @@ public class JwtUtils {
     @Value("${spring.app.jwtCookie}")
     private String jwtCookie;
 
-    public String generateTokenFromUsername(UserDetails userDetails) {
+    public String generateTokenFromUsername(String username) {
         return Jwts
                 .builder()
-                .subject(userDetails.getUsername())
+                .subject(username)
                 .issuedAt(new Date())
                 .expiration(new Date(new Date().getTime() + jwtExpirationMs))
                 .signWith(key())
@@ -46,8 +46,8 @@ public class JwtUtils {
         );
     }
 
-    public ResponseCookie generateJwtCookie(UserDetailsImpl userPrincipal) {
-        return ResponseCookie.from(jwtCookie, generateTokenFromUsername(userPrincipal))
+    public ResponseCookie generateJwtCookie(String username) {
+        return ResponseCookie.from(jwtCookie, generateTokenFromUsername(username))
                 .path("/api")
                 .maxAge(24 * 60 * 60)
                 .httpOnly(false)

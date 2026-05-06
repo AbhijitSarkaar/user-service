@@ -10,14 +10,25 @@ import com.rest.user_service.payload.UserDTO;
 import com.rest.user_service.payload.UserRequestDTO;
 import com.rest.user_service.repository.RoleRepository;
 import com.rest.user_service.repository.UserRepository;
+import com.rest.user_service.security.jwt.JwtUtils;
+import com.rest.user_service.security.payload.LogInRequestDTO;
+import com.rest.user_service.security.service.UserDetailsImpl;
+import com.rest.user_service.security.service.UserDetailsServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseCookie;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     @Autowired
@@ -31,6 +42,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     PasswordEncoder passwordEncoder;
+
+    @Autowired
+    UserDetailsServiceImpl userDetailsService;
+
+    @Autowired
+    JwtUtils jwtUtils;
 
     @Override
     public List<UserDTO> getAllUsers() {
@@ -103,6 +120,40 @@ public class UserServiceImpl implements UserService {
         findById(userid);
         userRepository.deleteById(userid);
         return new APIResponse("User with id " + userid + " deleted");
+    }
+
+    @Override
+    public ResponseCookie userLogin(LogInRequestDTO logInRequestDto) {
+
+        Authentication authentication;
+        try {
+            // get user details from custom userDetailsService implementation
+            UserDetails userDetails = userDetailsService.loadUserByUsername(logInRequestDto.getUsername());
+
+            log.info("userDetails.getUsername(): {}", userDetails.getUsername());
+
+            log.info("userDetails.getAuthorities(): {}", userDetails.getAuthorities());
+
+            // get authentication object from UsernamePasswordAuthenticationToken class
+            authentication = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities()
+            );
+
+            log.info("authentication.getName() : {}", authentication.getName());
+
+            // set authentication object in security context holder
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            log.info("SecurityContextHolder : {}", SecurityContextHolder.getContext().getAuthentication().isAuthenticated());
+
+            // get jwt token and set it to response cookie
+            return jwtUtils.generateJwtCookie(userDetails.getUsername());
+
+//            log.info(cookie.getValue());
+
+        } catch(RuntimeException e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     public User findById(Long userId) {

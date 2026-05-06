@@ -4,11 +4,12 @@ package com.rest.user_service.controller;
 import com.rest.user_service.exception.response.APIResponse;
 import com.rest.user_service.payload.UserDTO;
 import com.rest.user_service.payload.UserRequestDTO;
+import com.rest.user_service.security.jwt.JwtUtils;
+import com.rest.user_service.security.payload.LogInRequestDTO;
 import com.rest.user_service.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,8 @@ public class UserController {
 
     @Autowired
     UserService userService;
+    @Autowired
+    private JwtUtils jwtUtils;
 
     @GetMapping("/users")
     public ResponseEntity<List<UserDTO>> getUsers() {
@@ -56,4 +59,17 @@ public class UserController {
                 HttpStatus.OK
         );
     }
+
+    @PostMapping("/users/login")
+    public ResponseEntity<?> login(@Valid @RequestBody LogInRequestDTO logInRequestDto) {
+        ResponseCookie cookie = userService.userLogin(logInRequestDto);
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(new APIResponse("User logged in"));
+    }
+
+    @PostMapping("/users/logout")
+    public ResponseEntity<?> logout() {
+        ResponseCookie cookie = jwtUtils.getCleanCookie();
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(new APIResponse("User logged out"));
+    }
+
 }
