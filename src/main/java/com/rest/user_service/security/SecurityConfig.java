@@ -54,12 +54,16 @@ public class SecurityConfig {
     @Bean
     @Order(SecurityFilterProperties.BASIC_AUTH_ORDER)
     SecurityFilterChain securityFilterChain(HttpSecurity http) {
+
         http
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/*").permitAll()
+                        auth
+                                .requestMatchers("/api/**").permitAll()
                                 .anyRequest()
                                 .authenticated()
                 );
+
+        http.csrf(csrf -> csrf.disable());
 
         http.authenticationProvider(authenticationProvider());
         http.exceptionHandling(
