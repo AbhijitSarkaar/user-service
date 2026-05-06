@@ -3,6 +3,7 @@ package com.rest.user_service.service;
 
 import com.rest.user_service.exception.response.APIResponse;
 import com.rest.user_service.payload.UserDTO;
+import com.rest.user_service.payload.UserDetailsDTO;
 import com.rest.user_service.payload.UserRequestDTO;
 import com.rest.user_service.security.payload.LogInRequestDTO;
 import jakarta.validation.Valid;
@@ -16,11 +17,11 @@ public interface UserService {
 
     UserDTO createUser(UserRequestDTO userRequestDto);
 
-    UserDTO getUserById(Long userId);
+    UserDetailsDTO getUserDetails();
 
-    UserDTO updateUser(UserDTO userDto, Long userId);
+    UserDTO updateUser(UserDTO userDto);
 
-    APIResponse deleteUser(Long userid);
+    APIResponse deleteUser();
 
     ResponseCookie userLogin(LogInRequestDTO logInRequestDto);
 }

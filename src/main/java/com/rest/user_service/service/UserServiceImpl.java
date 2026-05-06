@@ -7,6 +7,7 @@ import com.rest.user_service.model.AppRole;
 import com.rest.user_service.model.Role;
 import com.rest.user_service.model.User;
 import com.rest.user_service.payload.UserDTO;
+import com.rest.user_service.payload.UserDetailsDTO;
 import com.rest.user_service.payload.UserRequestDTO;
 import com.rest.user_service.repository.RoleRepository;
 import com.rest.user_service.repository.UserRepository;
@@ -25,6 +26,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -51,6 +53,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDTO> getAllUsers() {
+
         return userRepository.findAll()
                 .stream()
                 .map(item -> modelMapper.map(item, UserDTO.class))
@@ -100,56 +103,67 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO getUserById(Long userId) {
-        User user = findById(userId);
-        return modelMapper.map(user, UserDTO.class);
+    public UserDetailsDTO getUserDetails() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        UserDetailsDTO userDetailsDto = new UserDetailsDTO();
+
+        userDetailsDto.setId(userDetails.getId());
+        userDetailsDto.setUsername(userDetails.getUsername());
+        userDetailsDto.setEmail(userDetails.getEmail());
+
+        List<String> roles = new ArrayList<>();
+
+        userDetails.getAuthorities().forEach(item -> {
+            roles.add(item.getAuthority());
+        });
+
+        userDetailsDto.setRoles(roles);
+
+        return userDetailsDto;
     }
 
     @Override
-    public UserDTO updateUser(UserDTO userDto, Long userId) {
+    public UserDTO updateUser(UserDTO userDto) {
 
-        User user = findById(userId);
-        user.setEmail(userDto.getEmail());
-        user.setUsername(userDto.getUsername());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        User user = findById(userDetails.getId());
+        if(userDto.getEmail() != null) user.setEmail(userDto.getEmail());
+        if(userDto.getUsername() != null) user.setUsername(userDto.getUsername());
 
         return modelMapper.map(userRepository.save(user), UserDTO.class);
     }
 
     @Override
-    public APIResponse deleteUser(Long userid) {
-        findById(userid);
-        userRepository.deleteById(userid);
-        return new APIResponse("User with id " + userid + " deleted");
+    public APIResponse deleteUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        findById(userDetails.getId());
+        userRepository.deleteById(userDetails.getId());
+        return new APIResponse("User with id " + userDetails.getId() + " deleted");
     }
 
     @Override
     public ResponseCookie userLogin(LogInRequestDTO logInRequestDto) {
 
         Authentication authentication;
+
         try {
+
             // get user details from custom userDetailsService implementation
             UserDetails userDetails = userDetailsService.loadUserByUsername(logInRequestDto.getUsername());
-
-            log.info("userDetails.getUsername(): {}", userDetails.getUsername());
-
-            log.info("userDetails.getAuthorities(): {}", userDetails.getAuthorities());
-
             // get authentication object from UsernamePasswordAuthenticationToken class
             authentication = new UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities()
             );
-
-            log.info("authentication.getName() : {}", authentication.getName());
-
             // set authentication object in security context holder
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            log.info("SecurityContextHolder : {}", SecurityContextHolder.getContext().getAuthentication().isAuthenticated());
-
             // get jwt token and set it to response cookie
-            return jwtUtils.generateJwtCookie(userDetails.getUsername());
 
-//            log.info(cookie.getValue());
+            return jwtUtils.generateJwtCookie(userDetails.getUsername());
 
         } catch(RuntimeException e) {
             throw new RuntimeException(e.getMessage());

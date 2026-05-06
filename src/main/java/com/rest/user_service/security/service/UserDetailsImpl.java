@@ -2,6 +2,7 @@
 package com.rest.user_service.security.service;
 
 import com.rest.user_service.model.User;
+import lombok.Data;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -9,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
+@Data
 public class UserDetailsImpl implements UserDetails {
 
     private static final Long serialVersionUID = 1L;
