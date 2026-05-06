@@ -56,11 +56,17 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/*").permitAll()
+                        auth
+                                .requestMatchers(
+                                        "/api/public/**",
+                                        "/api/auth/**"
+                                )
+                                .permitAll()
                                 .anyRequest()
                                 .authenticated()
                 );
 
+        http.csrf(csrf -> csrf.disable());
         http.authenticationProvider(authenticationProvider());
         http.exceptionHandling(
                 exception -> exception.authenticationEntryPoint(unauthorizedHandler)

@@ -37,6 +37,12 @@ public class User {
     @Size(min = 5, message = "email needs to be at least 5 characters")
     private String email;
 
+    public User(String username, String password, String email) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+    }
+
     @ManyToMany(
             cascade = {CascadeType.PERSIST, CascadeType.MERGE},
             fetch = FetchType.EAGER
@@ -47,5 +53,9 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles = new HashSet<>();
+
+    public void setRole(Role role) {
+        this.roles.add(role);
+    }
 
 }
