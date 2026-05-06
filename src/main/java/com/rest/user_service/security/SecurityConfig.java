@@ -54,7 +54,6 @@ public class SecurityConfig {
     @Bean
     @Order(SecurityFilterProperties.BASIC_AUTH_ORDER)
     SecurityFilterChain securityFilterChain(HttpSecurity http) {
-
         http
                 .authorizeHttpRequests(auth ->
                         auth
@@ -64,7 +63,6 @@ public class SecurityConfig {
                 );
 
         http.csrf(csrf -> csrf.disable());
-
         http.authenticationProvider(authenticationProvider());
         http.exceptionHandling(
                 exception -> exception.authenticationEntryPoint(unauthorizedHandler)

@@ -10,17 +10,14 @@ import com.rest.user_service.payload.UserDTO;
 import com.rest.user_service.payload.UserRequestDTO;
 import com.rest.user_service.repository.RoleRepository;
 import com.rest.user_service.repository.UserRepository;
-import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Set;
 
 @Service
-@Slf4j
 public class UserServiceImpl implements UserService {
 
     @Autowired
